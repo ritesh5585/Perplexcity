@@ -12,12 +12,18 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@langchain/community": "^1.1.24",
+    "@langchain/core": "^1.1.33",
+    "@langchain/groq": "^1.1.5",
+    "@tavily/core": "^0.7.2",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
-    "dotenv": "^17.3.1",
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
     "jsonwebtoken": "^9.0.3",
+    "langchain": "^1.2.34",
     "mongoose": "^9.3.0",
     "nodemailer": "^8.0.2"
   }
