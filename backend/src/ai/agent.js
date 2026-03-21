@@ -7,21 +7,34 @@ import {
 import { llm } from "./llm.js";
 import { tools } from "./tools.js";
 
+// ✅ Har user ki alag history
+const conversationHistories = new Map();
+
 export const createAgent = async () => {
     const llmWithTools = llm.bindTools(tools);
 
     return {
-        invoke: async ({ input }) => {
-            // Step 1: Initial call with tools bound
+        invoke: async ({ input, userId = "default" }) => {
+
+            // User ki history lo — nahi hai toh khali array
+            if (!conversationHistories.has(userId)) {
+                conversationHistories.set(userId, []);
+            }
+            const userHistory = conversationHistories.get(userId);
+
+            // Step 1: Messages banao — history ke saath
             const messages = [
                 new SystemMessage(
                     "You are a helpful AI assistant. Use tools when needed."
                 ),
-                new HumanMessage(input),
+                ...userHistory,          // ✅ Pehli baatein yaad
+                new HumanMessage(input), // ✅ Naya message
             ];
 
             const response = await llmWithTools.invoke(messages);
             console.log("🔧 Tool calls:", response.tool_calls);
+
+            let finalOutput = "";
 
             // Step 2: Agar tool call hai to execute karo
             if (response.tool_calls?.length > 0) {
@@ -32,7 +45,7 @@ export const createAgent = async () => {
                     const toolResult = await tool.invoke(toolCall.args);
                     console.log("🔍 Tool result:", toolResult);
 
-                    // Step 3: AIMessage explicitly banao
+                    // AIMessage explicitly banao
                     const aiMessage = new AIMessage({
                         content: "",
                         tool_calls: response.tool_calls,
@@ -43,22 +56,33 @@ export const createAgent = async () => {
                         tool_call_id: toolCall.id,
                     });
 
-                    const finalMessages = [
+                    // Plain llm — no tools bound, direct answer milega
+                    const finalResponse = await llm.invoke([
                         ...messages,
-                        aiMessage,   // ✅ Proper AIMessage
-                        toolMessage, // ✅ Tool result
-                    ];
+                        aiMessage,
+                        toolMessage,
+                    ]);
 
-                    // Step 4: Plain llm — no tools bound, direct answer milega
-                    const finalResponse = await llm.invoke(finalMessages);
                     console.log("✅ Final response:", finalResponse.content);
-
-                    return { output: finalResponse.content };
+                    finalOutput = finalResponse.content;
                 }
+            } else {
+                // Koi tool call nahi — direct response
+                finalOutput = response.content;
             }
 
-            // Agar koi tool call nahi — direct response
-            return { output: response.content };
+            // Step 3: ✅ History update karo
+            userHistory.push(new HumanMessage(input));
+            userHistory.push(new AIMessage(finalOutput));
+
+            // Step 4: History limit — sirf last 20 messages
+            if (userHistory.length > 20) {
+                userHistory.splice(0, 2);
+            }
+
+            console.log(`📝 History for ${userId}:`, userHistory.length, "messages");
+
+            return { output: finalOutput };
         },
     };
 };

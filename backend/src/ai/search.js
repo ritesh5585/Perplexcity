@@ -9,7 +9,7 @@ const tavilyClient = process.env.TAVILY_API_KEY
 
 export async function searchWeb(query) {
     if (!tavilyClient) {
-        console.warn("⚠️ Web search unavailable — TAVILY_API_KEY not configured");
+        console.warn("Web search unavailable — TAVILY_API_KEY not configured");
         return null;
     }
 
@@ -30,7 +30,7 @@ export async function searchWeb(query) {
 
         return formatted;
     } catch (error) {
-        console.error("❌ Tavily search error:", error.message);
+        console.error("Tavily search error:", error.message);
         return null;
     }
 }
