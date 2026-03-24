@@ -7,82 +7,76 @@ import {
 import { llm } from "./llm.js";
 import { tools } from "./tools.js";
 
-// ✅ Har user ki alag history
 const conversationHistories = new Map();
 
-export const createAgent = async () => {
+const SYSTEM_PROMPT = new SystemMessage(
+    "You are a helpful AI assistant. Use tools when needed."
+);
+
+export const createAgent = () => {
     const llmWithTools = llm.bindTools(tools);
 
     return {
         invoke: async ({ input, userId = "default" }) => {
+            const history = conversationHistories.get(userId) || [];
 
-            // User ki history lo — nahi hai toh khali array
-            if (!conversationHistories.has(userId)) {
-                conversationHistories.set(userId, []);
-            }
-            const userHistory = conversationHistories.get(userId);
-
-            // Step 1: Messages banao — history ke saath
             const messages = [
-                new SystemMessage(
-                    "You are a helpful AI assistant. Use tools when needed."
-                ),
-                ...userHistory,          // ✅ Pehli baatein yaad
-                new HumanMessage(input), // ✅ Naya message
+                SYSTEM_PROMPT,
+                ...history,
+                new HumanMessage(input),
             ];
 
-            const response = await llmWithTools.invoke(messages);
-            console.log("🔧 Tool calls:", response.tool_calls);
+            const res = await llmWithTools.invoke(messages);
 
-            let finalOutput = "";
+            let output = res.content;
 
-            // Step 2: Agar tool call hai to execute karo
-            if (response.tool_calls?.length > 0) {
-                const toolCall = response.tool_calls[0];
-                const tool = tools.find((t) => t.name === toolCall.name);
+            if (res.tool_calls?.length) {
+                const { name, args, id } = res.tool_calls[0];
+                const tool = tools.find(t => t.name === name);
 
                 if (tool) {
-                    const toolResult = await tool.invoke(toolCall.args);
-                    console.log("🔍 Tool result:", toolResult);
+                    const result = await tool.invoke(args);
 
-                    // AIMessage explicitly banao
-                    const aiMessage = new AIMessage({
-                        content: "",
-                        tool_calls: response.tool_calls,
-                    });
-
-                    const toolMessage = new ToolMessage({
-                        content: String(toolResult),
-                        tool_call_id: toolCall.id,
-                    });
-
-                    // Plain llm — no tools bound, direct answer milega
-                    const finalResponse = await llm.invoke([
+                    const finalRes = await llm.invoke([
                         ...messages,
-                        aiMessage,
-                        toolMessage,
+                        new AIMessage({ tool_calls: res.tool_calls }),
+                        new ToolMessage({
+                            content: String(result),
+                            tool_call_id: id,
+                        }),
                     ]);
 
-                    console.log("✅ Final response:", finalResponse.content);
-                    finalOutput = finalResponse.content;
+                    output = finalRes.content;
                 }
-            } else {
-                // Koi tool call nahi — direct response
-                finalOutput = response.content;
             }
 
-            // Step 3: ✅ History update karo
-            userHistory.push(new HumanMessage(input));
-            userHistory.push(new AIMessage(finalOutput));
+            // history update (optimized)
+            const updatedHistory = [
+                ...history,
+                new HumanMessage(input),
+                new AIMessage(output),
+            ].slice(-20);
 
-            // Step 4: History limit — sirf last 20 messages
-            if (userHistory.length > 20) {
-                userHistory.splice(0, 2);
-            }
+            conversationHistories.set(userId, updatedHistory);
 
-            console.log(`📝 History for ${userId}:`, userHistory.length, "messages");
-
-            return { output: finalOutput };
+            return { output };
         },
     };
 };
+
+export const generateChatTitle = async (userMessage, aiResponse) => {
+    const titleResponse = await llm.invoke([
+
+        new SystemMessage(
+
+            `Generate a very short title (max 5 words) for this conversation.
+       Return ONLY the title — no quotes, no explanation, nothing else.`
+        ),
+        new HumanMessage(
+
+            `User asked: "${userMessage}"`
+        ),
+    ])
+
+    return titleResponse.content.trim()
+}

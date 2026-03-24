@@ -18,14 +18,7 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE"],
 }))
 
-app.use("/api", chatRoutes);
-
-app.get("/", (req, res) => {
-    res.json({
-        message: " Server is running"
-    })
-})
-
+app.use("/api/chats", chatRoutes);
 app.use("/api/auth", authRouter)
 
 export default app
