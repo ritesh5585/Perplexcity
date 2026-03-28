@@ -8,7 +8,8 @@ import cors from "cors"
 const app = express()
 
 app.use(express.json())
-app.use(express.urlencoded({ extend: true }))
+// FIX: Changed 'extend' to 'extended' — correct option name for express.urlencoded
+app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 app.use(morgan("dev"))
 

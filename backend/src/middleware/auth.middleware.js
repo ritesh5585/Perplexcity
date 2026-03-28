@@ -13,8 +13,8 @@ export async function authUser(req, res, next) {
     try {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET)
-        console.log("Decoded token:", decoded) 
-            req.user = decoded
+
+        req.user = decoded
 
         next()
 

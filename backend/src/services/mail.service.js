@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer"
+import { createTransport } from "nodemailer"
 
 const transporter = nodemailer.createTransport({
     service: "gmail",

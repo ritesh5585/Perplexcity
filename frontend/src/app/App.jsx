@@ -1,6 +1,6 @@
 import React from "react";
 import { RouterProvider } from "react-router";
-import { router } from "./app.router";
+import { router } from "./app.router.jsx";
 import { useAuth } from "../features/auth/hook/useAuth";
 import { useEffect } from "react";
 

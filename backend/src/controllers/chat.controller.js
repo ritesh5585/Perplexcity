@@ -4,6 +4,17 @@ import chatModel from "../models/chat.model.js"
 import { generateChatTitle } from "../ai/agent.js";
 import messageModel from "../models/msg.model.js";
 
+export const getAllChats = async (req, res) => {
+    try {
+        
+        const chats = await chatModel.find({ user: req.user.id }).sort({ updatedAt: -1 });
+        res.status(200).json({ chats });
+    } catch (error) {
+        console.error("Error from getAllChats controller:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
 export const chatHandler = async (req, res) => {
 
     try {
@@ -74,8 +85,8 @@ export const getChatList = async (req, res) => {
         if (!chat) return res.status(404).json({ message: "Chat not found" });
 
         const messages = await messageModel.find({
-        chat: chatId
-    })
+            chat: chatId
+        })
 
         res.status(200).json({ messages });
 

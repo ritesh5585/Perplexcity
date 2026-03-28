@@ -6,7 +6,8 @@ export const initializeSocketConnection = () => {
     })
 
     socket.on("connect", () => {
-        console.log("Connect to Socket.io is connected")
+        console.log("Connected to Socket.io")  // FIX: Cleaned up log message
     })
 
+    return socket
 }

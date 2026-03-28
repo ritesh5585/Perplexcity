@@ -1,133 +1,266 @@
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { useChat } from "../hooks/useChat";
+import React, { useState, useEffect, useMemo } from "react";
+import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useDashboard } from "../components/useDashboard";
+import { useRef } from "react";
+import getTheme from "../components/Theme";
 
-const Dashboard = () => {
-  const chat = useChat();
+import {
+  Trash2,
+  Sun,
+  Moon,
+  MoreHorizontal,
+  MessageSquare,
+  ArrowUp,
+  Menu,
+  X,
+  User,
+} from "lucide-react";
 
-  const fullState = useSelector((state) => state);
-  console.log("Redux State:", fullState);
-  const [chatInput, setChatInput] = useState("");
-  const chats = useSelector((state) => state.chat.chats);
-  const currentChatId = useSelector((state) => state.chat.currentChatId);
+/* ================= TYPEWRITER ================= */
+
+const Typewriter = ({ content }) => {
+  const [text, setText] = useState("");
 
   useEffect(() => {
-    chat.initializeSocketConnection();
-    chat.handleGetChats();
+    let i = 0;
+    const id = setInterval(() => {
+      i += 3;
+      setText(content.slice(0, i));
+      if (i >= content.length) clearInterval(id);
+    }, 15);
+
+    return () => clearInterval(id);
+  }, [content]);
+
+  return <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>;
+};
+
+/* ================= CHAT ITEM ================= */
+
+const ChatItem = ({ c, isActive, onOpen, onDelete, t }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef();
+
+  // click outside close
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const { user } = useSelector((state) => state.auth);
-  console.log(user);
+  return (
+    <div
+      className={`group relative flex items-center justify-between rounded-xl px-3 py-2 transition-all duration-200
+      ${t.bgItemHover} ${isActive ? t.bgItemActive : ""}`}
+    >
+      {/* Title */}
+      <button
+        onClick={() => onOpen(c.id)}
+        className={`flex-1 truncate text-left text-sm transition-colors
+        ${isActive ? t.textMain : t.textMuted}`}
+      >
+        {c.title}
+      </button>
 
-  const handleSubmitMessage = (event) => {
-    event.preventDefault();
+      {/* Dots Button */}
+      <div className="relative" ref={ref}>
+        <button
+          onClick={() => setOpen(!open)}
+          className="opacity-0 group-hover:opacity-100 transition"
+        >
+          <MoreHorizontal size={16} />
+        </button>
 
-    const trimmedMessage = chatInput.trim();
-    if (!trimmedMessage) {
-      return;
-    }
+        {/* Dropdown */}
 
-    chat.handleSendMessage({ message: trimmedMessage, chatId: currentChatId });
-    setChatInput("");
-  };
+        {open && (
+          <div
+            className={`absolute right-0 mt-2 w-32 rounded-lg shadow-lg border ${t.borderMain} ${t.bgMain} z-50`}
+          >
+            <button
+              onClick={() => onDelete(c.id)}
+              className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-red-500/10 text-red-500"
+            >
+              <Trash2 size={14} />
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
-  const openChat = (chatId) => {
-    chat.handleOpenChat(chatId, chats);
-  };
+/* ================= SIDEBAR ================= */
+const Sidebar = ({ chats, currentChatId, onOpen, onDelete, t }) => (
+  <>
+    <button
+      onClick={() => window.location.reload()}
+      className={`mb-6  flex w-full items-center justify-center gap-2 rounded-xl py-3 border ${t.borderMain} ${t.bgItemHover}`}
+    >
+      <MessageSquare size={22} /> New Chat
+    </button>
+
+    <div className="flex flex-col gap-1 overflow-y-auto">
+      {Object.values(chats).map((c) => (
+        <ChatItem
+          key={c.id}
+          c={c}
+          isActive={currentChatId === c.id}
+          onOpen={onOpen}
+          onDelete={onDelete}
+          t={t}
+        />
+      ))}
+    </div>
+  </>
+);
+
+/* ================= MAIN ================= */
+const Dashboard = () => {
+  const {
+    chatInput,
+    setChatInput,
+    mobileOpen,
+    setMobileOpen,
+    isDark,
+    chats,
+    currentChatId,
+    user,
+    messagesEndRef,
+    userDetail,
+    handleSubmit,
+    handleDelete,
+    toggleTheme,
+    handleOpenChat,
+  } = useDashboard();
+
+  /*  FIXED THEME */
+  const t = useMemo(() => getTheme(isDark), [isDark]);
+
+  const messages = chats[currentChatId]?.messages || [];
 
   return (
-    <main className="min-h-screen w-full bg-[#07090f] p-3 text-white md:p-5">
-      <section className="mx-auto flex h-[calc(100vh-1.5rem)] w-full gap-4 rounded-3xl border   p-1 md:h-[calc(100vh-2.5rem)] md:gap-6 md:p-1 border-none">
-        <aside className="hidden h-full w-72 shrink-0 rounded-3xl border  bg-[#080b12] p-4 md:flex md:flex-col">
-          <h1 className="mb-5 text-3xl font-semibold tracking-tight">
-            Perplexity
-          </h1>
+    <main className={`${t.bgMain} ${t.textMain} min-h-screen flex flex-col `}>
+      {/* ================= NAVBAR ================= */}
 
-          <div className="space-y-2">
-            {Object.values(chats).map((chat, index) => (
-              <button
-                onClick={() => {
-                  openChat(chat.id);
-                }}
-                key={index}
-                type="button"
-                className="w-full cursor-pointer rounded-xl border border-white/60 bg-transparent px-3 py-2 text-left text-base font-medium text-white/90 transition hover:border-white hover:text-white"
-              >
-                {chat.title}
-              </button>
-            ))}
-          </div>
+      <header
+        className={`flex justify-between items-center p-4 border-b ${t.borderMain}`}
+      >
+        <div className="flex items-center gap-2">
+          <button onClick={() => setMobileOpen(true)} className="md:hidden">
+            <Menu size={20} />
+          </button>
+          <h1 className="font-bold text-lg m-2">Perplexity</h1>
+        </div>
+
+        <div className="flex gap-5 items-center">
+          <button onClick={toggleTheme}>
+            {isDark ? <Sun size={22} /> : <Moon size={22} />}
+          </button>
+
+          {/* <button
+            onClick={userDetail}
+            className="w-8 h-8 rounded-full flex items-center justify-center border"
+          >
+            {user?.username ? user.username[0] : <User size={16} />}
+          </button> */}
+        </div>
+      </header>
+
+      {/* ================= BODY ================= */}
+      <div className="flex flex-1 ">
+        {/* Sidebar */}
+        <aside
+          className={`hidden md:flex flex-col w-64 p-4 border-r gap-3 ${t.borderMain}`}
+        >
+          <Sidebar
+            chats={chats}
+            currentChatId={currentChatId}
+            onOpen={handleOpenChat}
+            onDelete={handleDelete}
+            t={t}
+          />
         </aside>
 
-        <section className="relative max-w-3/5 mx-auto flex h-full min-w-0 flex-1 flex-col gap-4">
-          <div className="messages flex-1 space-y-3 overflow-y-auto pr-1 pb-30">
-            {chats[currentChatId]?.messages.map((message) => (
-              <div
-                key={message.id}
-                className={`max-w-[82%] w-fit rounded-2xl px-4 py-3 text-sm md:text-base ${
-                  message.role === "user"
-                    ? "ml-auto rounded-br-none bg-white/12 text-white"
-                    : "mr-auto border-none text-white/90"
-                }`}
-              >
-                {message.role === "user" ? (
-                  <p>{message.content}</p>
-                ) : (
-                  <ReactMarkdown
-                    components={{
-                      p: ({ children }) => (
-                        <p className="mb-2 last:mb-0">{children}</p>
-                      ),
-                      ul: ({ children }) => (
-                        <ul className="mb-2 list-disc pl-5">{children}</ul>
-                      ),
-                      ol: ({ children }) => (
-                        <ol className="mb-2 list-decimal pl-5">{children}</ol>
-                      ),
-                      code: ({ children }) => (
-                        <code className="rounded bg-white/10 px-1 py-0.5">
-                          {children}
-                        </code>
-                      ),
-                      pre: ({ children }) => (
-                        <pre className="mb-2 overflow-x-auto rounded-xl bg-black/30 p-3">
-                          {children}
-                        </pre>
-                      ),
-                    }}
-                    remarkPlugins={[remarkGfm]}
-                  >
-                    {message.content}
-                  </ReactMarkdown>
-                )}
+        {/* Mobile Sidebar */}
+        {mobileOpen && (
+          <div className="fixed inset-0 z-50 flex md:hidden ">
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setMobileOpen(false)}
+            />
+            <aside className={`relative w-64 p-4 ${t.bgMain}`}>
+              <button onClick={() => setMobileOpen(false)}>
+                <X />
+              </button>
+              <Sidebar
+                chats={chats}
+                currentChatId={currentChatId}
+                onOpen={handleOpenChat}
+                onDelete={handleDelete}
+                t={t}
+              />
+            </aside>
+          </div>
+        )}
+
+        {/* Chat Area */}
+        <section className="flex-1 flex flex-col">
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-18 space-y-4">
+            {messages.length ? (
+              messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`${msg.role === "user" ? "text-right" : ""} `}
+                >
+                  <div className="inline-block max-w-[80%]">
+                    {msg.role === "user" ? (
+                      <p>{msg.content}</p>
+                    ) : msg.isNew ? (
+                      <Typewriter content={msg.content} />
+                    ) : (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center mt-20">
+                <h1 className="text-4xl font-bold">Perplexity</h1>
+                <p className={t.textMuted}>Ask anything...</p>
               </div>
-            ))}
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
 
-          <footer className="rounded-3xl w-full absolute bottom-2 border border-white/60 bg-[#080b12] p-4 md:p-5">
-            <form
-              onSubmit={handleSubmitMessage}
-              className="flex flex-col gap-3 md:flex-row"
-            >
+          {/* Input */}
+          <form onSubmit={handleSubmit} className={`p-8  flex justify-center`}>
+            <div className={` flex gap-1 px-2  rounded-full max-w-200 `}>
               <input
-                type="text"
                 value={chatInput}
-                onChange={(event) => setChatInput(event.target.value)}
-                placeholder="Type your message..."
-                className="w-full rounded-2xl border border-white/50 bg-transparent px-4 py-3 text-lg text-white outline-none transition placeholder:text-white/45 focus:border-white/90"
+                onChange={(e) => setChatInput(e.target.value)}
+                className={`flex-1 bg-transperent px-8 outline-none rounded-full border-1`}
+                placeholder="Ask anything..."
               />
-              <button
-                type="submit"
-                disabled={!chatInput.trim()}
-                className="rounded-2xl border border-white/60 px-6 py-3 text-lg font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Send
+            </div>
+            <div className={`flex m-1 p-3 bg-transperent  rounded-full border-1`}>
+              <button type="submit" className="cursor-pointer ">
+                <ArrowUp size={25} />
               </button>
-            </form>
-          </footer>
+            </div>
+          </form>
         </section>
-      </section>
+      </div>
     </main>
   );
 };

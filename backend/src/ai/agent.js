@@ -17,13 +17,15 @@ export const createAgent = () => {
     const llmWithTools = llm.bindTools(tools);
 
     return {
-        invoke: async ({ input, userId = "default" }) => {
-            const history = conversationHistories.get(userId) || [];
+        invoke: async ({ input, userId = "default", history = [] }) => {
+            // history from DB already contains the current user message (saved in controller before askAI)
+            const formattedHistory = history.map(msg => 
+                msg.role === 'user' ? new HumanMessage(msg.content) : new AIMessage(msg.content)
+            );
 
             const messages = [
                 SYSTEM_PROMPT,
-                ...history,
-                new HumanMessage(input),
+                ...formattedHistory,
             ];
 
             const res = await llmWithTools.invoke(messages);
@@ -49,15 +51,6 @@ export const createAgent = () => {
                     output = finalRes.content;
                 }
             }
-
-            // history update (optimized)
-            const updatedHistory = [
-                ...history,
-                new HumanMessage(input),
-                new AIMessage(output),
-            ].slice(-20);
-
-            conversationHistories.set(userId, updatedHistory);
 
             return { output };
         },

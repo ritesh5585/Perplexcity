@@ -1,7 +1,26 @@
-import React from "react";
-import { Link } from "react-router";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { useAuth } from "../hook/useAuth";
 
 const Register = () => {
+  
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const { handleRegister } = useAuth();
+  const navigate = useNavigate();
+
+  const submitForm = async (event) => {
+    event.preventDefault();
+    try {
+      await handleRegister(username, email, password);
+      navigate("/login");
+    } catch (error) {
+      console.error("Registration failed:", error);
+    }
+  };
+
   return (
     <section className="min-h-screen bg-zinc-950 px-4 py-10 text-zinc-100 sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-[85vh] w-full max-w-5xl items-center justify-center">
@@ -11,7 +30,8 @@ const Register = () => {
             Register with your username, email, and password.
           </p>
 
-          <form onSubmit={""} className="mt-8 space-y-5">
+          {/* FIX: Changed onSubmit from empty string "" to actual submitForm function */}
+          <form onSubmit={submitForm} className="mt-8 space-y-5">
             <div>
               <label
                 htmlFor="username"
@@ -22,7 +42,7 @@ const Register = () => {
               <input
                 id="username"
                 type="text"
-                // value={username}
+                value={username}  // FIX: Uncommented — was previously commented out, making input uncontrolled
                 onChange={(event) => setUsername(event.target.value)}
                 placeholder="Choose a username"
                 required
@@ -40,7 +60,7 @@ const Register = () => {
               <input
                 id="email"
                 type="email"
-                // value={email}
+                value={email}  // FIX: Uncommented — was previously commented out
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="you@example.com"
                 required
@@ -58,7 +78,7 @@ const Register = () => {
               <input
                 id="password"
                 type="password"
-                // value={password}
+                value={password}  // FIX: Uncommented — was previously commented out
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Create a password"
                 required

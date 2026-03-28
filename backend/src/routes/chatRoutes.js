@@ -3,14 +3,16 @@ import { authUser } from "../middleware/auth.middleware.js";
 import {
     chatHandler,
     getChatList,
+    getAllChats,
     deleteChat
 }
     from "../controllers/chat.controller.js";
 
 const router = express.Router();
 
-router.get(`/:chatId/messages`,authUser, getChatList)
-router.post("/messages",authUser, chatHandler);
-router.delete("/:chatId/messages",authUser, deleteChat)
+router.get("/", authUser, getAllChats)
+router.get(`/:chatId/messages`, authUser, getChatList)
+router.post("/messages", authUser, chatHandler);
+router.delete("/:chatId/messages", authUser, deleteChat)
 
 export default router;

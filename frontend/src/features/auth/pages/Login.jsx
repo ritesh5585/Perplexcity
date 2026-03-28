@@ -10,17 +10,15 @@ const Login = () => {
 
   const navigate = useNavigate();
 
+  // FIX: Added try/catch — previously navigate("/") ran even when login failed
   const submitForm = async (event) => {
     event.preventDefault();
-
-    const payload = {
-      email,
-      password,
-    };
-
-    console.log("Login payload:", payload);
-    await handleLogin(email, password);
-    navigate("/");
+    try {
+      await handleLogin(email, password);
+      navigate("/");
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
 
   return (

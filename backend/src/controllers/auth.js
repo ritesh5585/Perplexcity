@@ -12,6 +12,12 @@ export async function register(req, res) {
         ]
     })
 
+    if (!verfiedEmails.has(email)) {
+        return res.status(400).json({
+            message: "Email not verified"
+        })
+    }
+
     if (isUserAlreadyExist) {
         return res.status(400).json({
             message: "user with this email or username is already exists",
@@ -21,6 +27,13 @@ export async function register(req, res) {
     }
 
     const user = await userModel.create({ username, email, password })
+
+    if (!username || !email || !password) {
+        return res.status(400).json({
+            message: "All fields are required",
+            success: false
+        })
+    }
 
     const emailVerificationToken = jwt.sign(
         {
@@ -52,6 +65,38 @@ export async function register(req, res) {
     })
 }
 
+export async function sendVerificationEmail(req, res) {
+    const { email } = req.body
+
+    if (!email) {
+        return res.status(400).json({
+            message: "Email required"
+        })
+    }
+
+    const token = jwt.sign(
+        { email },
+        process.env.JWT_SECRET,
+        { expiresIn: "10m" }
+    )
+
+    await sendEmail({
+        to: email,
+        subject: "Verify your email",
+        html: `
+        <h2>Verify Email</h2>
+        <a href="http://localhost:3000/api/auth/verify-email?token=${token}">
+            Click to verify
+        </a>
+        `
+    })
+
+    res.json({
+        success: true,
+        message: "Verification email sent"
+    })
+}
+
 // user can verify there emails by using this function
 export async function verifyEmail(req, res) {
     const { token } = req.query
@@ -62,6 +107,8 @@ export async function verifyEmail(req, res) {
         const user = await userModel.findOne({
             email: decoded.email
         })
+
+        // verifiedEmails.add(decoded.email)
 
         if (!user) {
             return res.status(400).json({
@@ -100,6 +147,13 @@ export async function logIn(req, res) {
     const user = await userModel.findOne({
         email
     })
+
+    if (!user.verfied) {
+        return res.status(400).json({
+            message: "Please verify your email first",
+            success: false
+        })
+    }
 
     if (!user) {
         return res.status(400).json({
