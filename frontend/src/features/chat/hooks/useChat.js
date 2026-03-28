@@ -1,4 +1,5 @@
 import { initializeSocketConnection } from "../services/chat.socket";
+import { removeChat } from "../chat.slice";
 import { sendMessages, getMessages, getChats, deleteChats } from "../services/chat.api"
 import {
     setChats,
@@ -25,6 +26,7 @@ export const useChat = () => {
 
             const responseChatId = data.chatId
             const { aiMessage } = data
+            // console.log(aiMessage)
 
             if (!chatId)
                 dispatch(createNewChat({
@@ -52,7 +54,7 @@ export const useChat = () => {
     }
 
     async function handleGetChats() {
-        
+
         try {
             dispatch(setLoading(true))
 
@@ -76,7 +78,7 @@ export const useChat = () => {
     }
 
     async function handleOpenChat(chatId, chats) {
-        
+
         try {
             if (chats[chatId]?.messages.length === 0) {
                 const data = await getMessages(chatId)
@@ -101,8 +103,13 @@ export const useChat = () => {
     async function handleDeleteSingleChat(chatId) {
         try {
             await deleteChats(chatId);
-            const { removeChat } = require("../chat.slice");
+            // const { removeChat } = require("../chat.slice");
             dispatch(removeChat(chatId));
+            const remainingChats = Object.keys(chats).filter(id => id !== chatId)
+            
+            if (remainingChats.length > 0) {
+                dispatch(setCurrentChatId(remainingChats[0]));
+            }
         } catch (error) {
             dispatch(setError(error.response?.data?.message || "Failed to delete chat"));
         }

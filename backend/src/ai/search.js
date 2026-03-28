@@ -1,5 +1,6 @@
 import { tavily } from "@tavily/core";
 import dotenv from "dotenv";
+import * as z from "zod"
 
 dotenv.config();
 

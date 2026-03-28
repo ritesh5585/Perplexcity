@@ -6,7 +6,7 @@ import messageModel from "../models/msg.model.js";
 
 export const getAllChats = async (req, res) => {
     try {
-        
+
         const chats = await chatModel.find({ user: req.user.id }).sort({ updatedAt: -1 });
         res.status(200).json({ chats });
     } catch (error) {
@@ -44,7 +44,11 @@ export const chatHandler = async (req, res) => {
             role: "user",
         });
 
-        const history = await messageModel.find({ chat: currentChatId });
+        const history = await messageModel
+            .find({ chat: currentChatId })
+            .sort({ createdAt: 1 })
+            .limit(20)
+
         const answer = await askAI(message, userId, history);
 
         const aiMessage = await messageModel.create({

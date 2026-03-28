@@ -7,19 +7,17 @@ import {
 import { llm } from "./llm.js";
 import { tools } from "./tools.js";
 
-const conversationHistories = new Map();
-
 const SYSTEM_PROMPT = new SystemMessage(
     "You are a helpful AI assistant. Use tools when needed."
 );
 
-export const createAgent = () => {
+export const createAgent = async () => {
     const llmWithTools = llm.bindTools(tools);
 
     return {
         invoke: async ({ input, userId = "default", history = [] }) => {
             // history from DB already contains the current user message (saved in controller before askAI)
-            const formattedHistory = history.map(msg => 
+            const formattedHistory = history.map(msg =>
                 msg.role === 'user' ? new HumanMessage(msg.content) : new AIMessage(msg.content)
             );
 
@@ -29,7 +27,6 @@ export const createAgent = () => {
             ];
 
             const res = await llmWithTools.invoke(messages);
-
             let output = res.content;
 
             if (res.tool_calls?.length) {
@@ -41,7 +38,7 @@ export const createAgent = () => {
 
                     const finalRes = await llm.invoke([
                         ...messages,
-                        new AIMessage({ tool_calls: res.tool_calls }),
+                        new AIMessage({ content: "", tool_calls: res.tool_calls }),
                         new ToolMessage({
                             content: String(result),
                             tool_call_id: id,

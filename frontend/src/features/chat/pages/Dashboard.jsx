@@ -1,24 +1,30 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useDashboard } from "../components/useDashboard";
-import { useRef } from "react";
-import getTheme from "../components/Theme";
-
+import applyTheme from "../components/Theme";
+import { globalCss } from "../components/Theme";
 import {
   Trash2,
   Sun,
   Moon,
   MoreHorizontal,
-  MessageSquare,
   ArrowUp,
   Menu,
   X,
   User,
+  Sparkles,
+  Plus,
 } from "lucide-react";
+ 
+/* Markdown */
+const Md = ({ children }) => (
+  <div className="md">
+    <ReactMarkdown remarkPlugins={[remarkGfm]}>{children}</ReactMarkdown>
+  </div>
+);
 
-/* ================= TYPEWRITER ================= */
-
+/* Typewriter */
 const Typewriter = ({ content }) => {
   const [text, setText] = useState("");
 
@@ -29,84 +35,79 @@ const Typewriter = ({ content }) => {
       setText(content.slice(0, i));
       if (i >= content.length) clearInterval(id);
     }, 15);
-
     return () => clearInterval(id);
   }, [content]);
 
-  return <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>;
+  return <Md>{text}</Md>;
 };
 
-/* ================= CHAT ITEM ================= */
-
-const ChatItem = ({ c, isActive, onOpen, onDelete, t }) => {
+/* Chat Item */
+const ChatItem = ({ c, isActive, onOpen, onDelete }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef();
 
-  // click outside close
   useEffect(() => {
-    const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setOpen(false);
-      }
+    if (!open) return;
+    const fn = (e) => {
+      if (!ref.current?.contains(e.target)) setOpen(false);
     };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
+    document.addEventListener("mousedown", fn);
+    return () => document.removeEventListener("mousedown", fn);
+  }, [open]);
 
   return (
     <div
-      className={`group relative flex items-center justify-between rounded-xl px-3 py-2 transition-all duration-200
-      ${t.bgItemHover} ${isActive ? t.bgItemActive : ""}`}
+      ref={ref}
+      className={`ci relative flex items-center gap-1 rounded-lg px-2 py-[7px] mb-px cursor-pointer transition ${isActive ? "active" : ""}`}
+      onClick={() => onOpen(c.id)}
     >
-      {/* Title */}
-      <button
-        onClick={() => onOpen(c.id)}
-        className={`flex-1 truncate text-left text-sm transition-colors
-        ${isActive ? t.textMain : t.textMuted}`}
-      >
+      <span className="ci-title flex-1 text-[13px] truncate text-[var(--muted)]">
         {c.title}
+      </span>
+
+      <button
+        className="ci-dot opacity-0 transition flex items-center p-1 rounded text-(--muted)"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+      >
+        <MoreHorizontal size={13} />
       </button>
 
-      {/* Dots Button */}
-      <div className="relative" ref={ref}>
-        <button
-          onClick={() => setOpen(!open)}
-          className="opacity-0 group-hover:opacity-100 transition"
-        >
-          <MoreHorizontal size={16} />
-        </button>
-
-        {/* Dropdown */}
-
-        {open && (
-          <div
-            className={`absolute right-0 mt-2 w-32 rounded-lg shadow-lg border ${t.borderMain} ${t.bgMain} z-50`}
+      {open && (
+        <div className="absolute right-0 top-full mt-1 rounded-xl overflow-hidden z-50 bg-(--bg) border border-(--accent-b) shadow-(--shadow) min-w-27.5">
+          <button
+            className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-(--danger) hover:bg-(--danger-bg)"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(c.id);
+              setOpen(false);
+            }}
           >
-            <button
-              onClick={() => onDelete(c.id)}
-              className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-red-500/10 text-red-500"
-            >
-              <Trash2 size={14} />
-              Delete
-            </button>
-          </div>
-        )}
-      </div>
+            <Trash2 size={13} /> Delete
+          </button>
+        </div>
+      )}
     </div>
   );
 };
 
-/* ================= SIDEBAR ================= */
-const Sidebar = ({ chats, currentChatId, onOpen, onDelete, t }) => (
-  <>
+/* Sidebar */
+const Sidebar = ({ chats, currentChatId, onOpen, onDelete, onNew }) => (
+  <div className="flex flex-col h-full gap-1">
     <button
-      onClick={() => window.location.reload()}
-      className={`mb-6  flex w-full items-center justify-center gap-2 rounded-xl py-3 border ${t.borderMain} ${t.bgItemHover}`}
+      onClick={onNew}
+      className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl text-[13px] font-semibold mb-2 border border-(--accent-b) bg-(--accent-s) text-(--active) hover:brightness-110 transition"
     >
-      <MessageSquare size={22} /> New Chat
+      <Plus size={14} /> New Chat
     </button>
 
-    <div className="flex flex-col gap-1 overflow-y-auto">
+    <p className="text-[10px] font-bold uppercase tracking-widest px-1 mb-1 text-(--muted)">
+      History
+    </p>
+
+    <div className="flex-1 overflow-y-auto">
       {Object.values(chats).map((c) => (
         <ChatItem
           key={c.id}
@@ -114,14 +115,13 @@ const Sidebar = ({ chats, currentChatId, onOpen, onDelete, t }) => (
           isActive={currentChatId === c.id}
           onOpen={onOpen}
           onDelete={onDelete}
-          t={t}
         />
       ))}
     </div>
-  </>
+  </div>
 );
 
-/* ================= MAIN ================= */
+/* Dashboard */
 const Dashboard = () => {
   const {
     chatInput,
@@ -140,128 +140,151 @@ const Dashboard = () => {
     handleOpenChat,
   } = useDashboard();
 
-  /*  FIXED THEME */
-  const t = useMemo(() => getTheme(isDark), [isDark]);
-
   const messages = chats[currentChatId]?.messages || [];
 
+  useEffect(() => {
+    applyTheme(isDark);
+  }, [isDark]);
+
+  const sidebarProps = {
+    chats,
+    currentChatId,
+    onOpen: handleOpenChat,
+    onDelete: handleDelete,
+    onNew: () => window.location.reload(),
+  };
+
   return (
-    <main className={`${t.bgMain} ${t.textMain} min-h-screen flex flex-col `}>
-      {/* ================= NAVBAR ================= */}
+    <>
+      <style>{globalCss}</style>
 
-      <header
-        className={`flex justify-between items-center p-4 border-b ${t.borderMain}`}
-      >
-        <div className="flex items-center gap-2">
-          <button onClick={() => setMobileOpen(true)} className="md:hidden">
-            <Menu size={20} />
-          </button>
-          <h1 className="font-bold text-lg m-2">Perplexity</h1>
-        </div>
+      <div className="flex flex-col h-screen overflow-hidden bg-[var(--bg)] text-[var(--text)]">
+        {/* NAVBAR */}
+        <header className="flex items-center justify-between px-4 h-[54px] shrink-0 z-20 backdrop-blur-md bg-[var(--bg-nav)] border-b border-[var(--border)]">
+          <div className="flex items-center gap-2">
+            <button
+              className="md:hidden p-1.5 rounded-lg text-[var(--muted)]"
+              onClick={() => setMobileOpen(true)}
+            >
+              <Menu size={19} />
+            </button>
 
-        <div className="flex gap-5 items-center">
-          <button onClick={toggleTheme}>
-            {isDark ? <Sun size={22} /> : <Moon size={22} />}
-          </button>
-
-          {/* <button
-            onClick={userDetail}
-            className="w-8 h-8 rounded-full flex items-center justify-center border"
-          >
-            {user?.username ? user.username[0] : <User size={16} />}
-          </button> */}
-        </div>
-      </header>
-
-      {/* ================= BODY ================= */}
-      <div className="flex flex-1 ">
-        {/* Sidebar */}
-        <aside
-          className={`hidden md:flex flex-col w-64 p-4 border-r gap-3 ${t.borderMain}`}
-        >
-          <Sidebar
-            chats={chats}
-            currentChatId={currentChatId}
-            onOpen={handleOpenChat}
-            onDelete={handleDelete}
-            t={t}
-          />
-        </aside>
-
-        {/* Mobile Sidebar */}
-        {mobileOpen && (
-          <div className="fixed inset-0 z-50 flex md:hidden ">
-            <div
-              className="absolute inset-0 bg-black/50"
-              onClick={() => setMobileOpen(false)}
-            />
-            <aside className={`relative w-64 p-4 ${t.bgMain}`}>
-              <button onClick={() => setMobileOpen(false)}>
-                <X />
-              </button>
-              <Sidebar
-                chats={chats}
-                currentChatId={currentChatId}
-                onOpen={handleOpenChat}
-                onDelete={handleDelete}
-                t={t}
-              />
-            </aside>
+            <div className="flex items-center gap-2 font-bold text-[17px] text-[var(--accent)]">
+              <Sparkles size={17} /> Perplexity
+            </div>
           </div>
-        )}
 
-        {/* Chat Area */}
-        <section className="flex-1 flex flex-col">
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-18 space-y-4">
-            {messages.length ? (
-              messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`${msg.role === "user" ? "text-right" : ""} `}
+          <div className="flex items-center gap-2">
+            <button
+              className="p-1.5 rounded-lg text-[var(--muted)] hover:bg-[var(--hover)]"
+              onClick={toggleTheme}
+            >
+              {isDark ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+
+            <button
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border border-(--accent-b) bg-(--accent-s) text-(--active)"
+              onClick={userDetail}
+            >
+              {user?.username ? (
+                user.username[0].toUpperCase()
+              ) : (
+                <User size={14} />
+              )}
+            </button>
+          </div>
+        </header>
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* SIDEBAR */}
+          <aside className="hidden md:flex flex-col w-56 p-3 bg-(--bg-side) border-r border-(--border)">
+            <Sidebar {...sidebarProps} />
+          </aside>
+
+          {/* MOBILE */}
+          {mobileOpen && (
+            <div className="fixed inset-0 z-50 flex md:hidden">
+              <div
+                className="absolute inset-0 bg-black/50"
+                onClick={() => setMobileOpen(false)}
+              />
+              <aside className="relative w-57.5 p-3 bg-(--bg-side)">
+                <button
+                  className="mb-2 text-(--muted)"
+                  onClick={() => setMobileOpen(false)}
                 >
-                  <div className="inline-block max-w-[80%]">
+                  <X size={18} />
+                </button>
+                <Sidebar {...sidebarProps} />
+              </aside>
+            </div>
+          )}
+
+          {/* CHAT */}
+          <section className="flex flex-1 flex-col overflow-hidden">
+            {messages.length === 0 ? (
+              <div className="flex flex-1 flex-col items-center justify-center gap-3">
+                <Sparkles size={30} />
+                <p className="text-3xl font-bold">Perplexity</p>
+                <p className="text-sm text-(--muted)">
+                  Ask anything — I'll find the answer.
+                </p>
+              </div>
+            ) : (
+              <div className="msgs flex-1 overflow-y-auto flex flex-col gap-3 p-5">
+                {messages.map((msg, i) => (
+                  <div
+                    key={i}
+                    className={`flex ${msg.role === "user" ? "justify-end" : "justify-start gap-2"}`}
+                  >
+                    {msg.role !== "user" && (
+                      <div className="w-6 h-6 flex items-center justify-center bg-(--accent) rounded">
+                        <Sparkles size={12} color="#fff" />
+                      </div>
+                    )}
+
                     {msg.role === "user" ? (
-                      <p>{msg.content}</p>
-                    ) : msg.isNew ? (
-                      <Typewriter content={msg.content} />
-                    ) : (
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <div className="max-w-[60%] px-4 py-2 rounded-lg bg-(--ubg) border border-(--uborder) text-(--utext)">
                         {msg.content}
-                      </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="max-w-[75%] text-(--ai-text)">
+                        {msg.isNew ? (
+                          <Typewriter content={msg.content} />
+                        ) : (
+                          <Md>{msg.content}</Md>
+                        )}
+                      </div>
                     )}
                   </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center mt-20">
-                <h1 className="text-4xl font-bold">Perplexity</h1>
-                <p className={t.textMuted}>Ask anything...</p>
+                ))}
+                <div ref={messagesEndRef} />
               </div>
             )}
 
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input */}
-          <form onSubmit={handleSubmit} className={`p-8  flex justify-center`}>
-            <div className={` flex gap-1 px-2  rounded-full max-w-200 `}>
-              <input
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                className={`flex-1 bg-transperent px-8 outline-none rounded-full border-1`}
-                placeholder="Ask anything..."
-              />
+            {/* INPUT */}
+            <div className="p-3 border-t border-(--border) bg-(--bg-nav)">
+              <form onSubmit={handleSubmit} className="max-w-xl mx-auto">
+                <div className="flex items-center gap-2 px-3 py-2 border rounded bg-(--bg) border-(--border) focus-within:border-[var(--accent-b)]">
+                  <input
+                    className="flex-1 bg-transparent outline-none text-sm text-(--text)"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!chatInput.trim()}
+                    className="p-2 bg-(--accent) text-white rounded disabled:opacity-30"
+                  >
+                    <ArrowUp size={14} />
+                  </button>
+                </div>
+              </form>
             </div>
-            <div className={`flex m-1 p-3 bg-transperent  rounded-full border-1`}>
-              <button type="submit" className="cursor-pointer ">
-                <ArrowUp size={25} />
-              </button>
-            </div>
-          </form>
-        </section>
+          </section>
+        </div>
       </div>
-    </main>
+    </>
   );
 };
 
