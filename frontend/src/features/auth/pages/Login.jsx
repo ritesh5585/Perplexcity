@@ -2,84 +2,97 @@ import { Link, useNavigate } from "react-router";
 import React, { useState } from "react";
 import { useAuth } from "../hook/useAuth";
 
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const { handleLogin } = useAuth();
-
   const navigate = useNavigate();
 
-  // FIX: Added try/catch — previously navigate("/") ran even when login failed
   const submitForm = async (event) => {
     event.preventDefault();
     try {
-      await handleLogin(email, password);
+      await handleLogin(email, password); 
       navigate("/");
     } catch (error) {
+      // Error already Redux mein dispatch ho gaya
       console.error("Login failed:", error);
     }
   };
-
   return (
-    <section className="min-h-screen bg-zinc-950 px-4 py-10 text-zinc-100 sm:px-6 lg:px-8">
+    <section className="min-h-screen px-4 py-10 text-[var(--text)] bg-[var(--bg)] sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-[85vh] w-full max-w-5xl items-center justify-center">
-        <div className="w-full max-w-md rounded-2xl border border-[#31b8c6]/40 bg-zinc-900/70 p-8 shadow-2xl shadow-black/50 backdrop-blur">
-          <h1 className="text-3xl font-bold text-[#31b8c6]">Welcome Back</h1>
-          <p className="mt-2 text-sm text-zinc-300">
+        <div
+          className="w-full max-w-md rounded-2xl p-8 backdrop-blur
+      bg-[var(--bg-side)] border border-[var(--border)] shadow-[var(--shadow)]"
+        >
+          <h1 className="text-3xl font-bold text-[var(--accent)]">
+            Welcome Back
+          </h1>
+
+          <p className="mt-2 text-sm text-[var(--muted)]">
             Sign in with your email and password.
           </p>
 
           <form onSubmit={submitForm} className="mt-8 space-y-5">
+            {/* Email */}
             <div>
-              <label
-                htmlFor="email"
-                className="mb-2 block text-sm font-medium text-zinc-200"
-              >
+              <label className="mb-2 block text-sm text-[var(--text)]">
                 Email
               </label>
+
               <input
-                id="email"
                 type="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="you@example.com"
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-950/80 px-4 py-3 text-zinc-100 outline-none ring-0 transition focus:border-[#31b8c6] focus:shadow-[0_0_0_3px_rgba(49,184,198,0.25)]"
+                placeholder="you@example.com"
+                className="w-full px-4 py-3 rounded-lg outline-none transition
+              bg-[var(--bg)] border border-[var(--border)]
+              text-[var(--text)]
+              focus:border-[var(--accent-b)]
+              focus:shadow-[0_0_0_3px_var(--accent-g)]"
               />
             </div>
 
+            {/* Password */}
             <div>
-              <label
-                htmlFor="password"
-                className="mb-2 block text-sm font-medium text-zinc-200"
-              >
+              <label className="mb-2 block text-sm text-[var(--text)]">
                 Password
               </label>
+
               <input
-                id="password"
                 type="password"
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Enter your password"
+                onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-950/80 px-4 py-3 text-zinc-100 outline-none ring-0 transition focus:border-[#31b8c6] focus:shadow-[0_0_0_3px_rgba(49,184,198,0.25)]"
+                placeholder="Enter your password"
+                className="w-full px-4 py-3 rounded-lg outline-none transition
+              bg-[var(--bg)] border border-[var(--border)]
+              text-[var(--text)]
+              focus:border-[var(--accent-b)]
+              focus:shadow-[0_0_0_3px_var(--accent-g)]"
               />
             </div>
 
+            {/* Button */}
             <button
               type="submit"
-              className="w-full rounded-lg bg-[#31b8c6] px-4 py-3 font-semibold text-zinc-950 transition hover:bg-[#45c7d4] focus:outline-none focus:shadow-[0_0_0_3px_rgba(49,184,198,0.35)]"
+              className="w-full py-3 rounded-lg font-semibold transition
+            bg-[var(--accent)] text-white
+            hover:brightness-110
+            focus:outline-none
+            focus:shadow-[0_0_0_3px_var(--accent-g)]"
             >
               Login
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-zinc-300">
+          <p className="mt-6 text-center text-sm text-[var(--muted)]">
             Don&apos;t have an account?{" "}
             <Link
               to="/register"
-              className="font-semibold text-[#31b8c6] transition hover:text-[#45c7d4]"
+              className="font-semibold text-[var(--accent)] hover:underline"
             >
               Register
             </Link>

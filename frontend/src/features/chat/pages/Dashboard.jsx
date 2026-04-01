@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useDashboard } from "../components/useDashboard";
-import applyTheme from "../components/Theme";
-import { globalCss } from "../components/Theme";
 import {
   Trash2,
   Sun,
@@ -16,7 +14,7 @@ import {
   Sparkles,
   Plus,
 } from "lucide-react";
- 
+
 /* Markdown */
 const Md = ({ children }) => (
   <div className="md">
@@ -58,7 +56,7 @@ const ChatItem = ({ c, isActive, onOpen, onDelete }) => {
   return (
     <div
       ref={ref}
-      className={`ci relative flex items-center gap-1 rounded-lg px-2 py-[7px] mb-px cursor-pointer transition ${isActive ? "active" : ""}`}
+      className={`ci relative flex items-center gap-1 rounded-lg px-2 py-1.75 mb-px cursor-pointer transition ${isActive ? "active" : ""}`}
       onClick={() => onOpen(c.id)}
     >
       <span className="ci-title flex-1 text-[13px] truncate text-[var(--muted)]">
@@ -66,7 +64,7 @@ const ChatItem = ({ c, isActive, onOpen, onDelete }) => {
       </span>
 
       <button
-        className="ci-dot opacity-0 transition flex items-center p-1 rounded text-(--muted)"
+        className="ci-dot opacity-0 transition flex items-center p-1 rounded text-[var(--muted)]"
         onClick={(e) => {
           e.stopPropagation();
           setOpen((v) => !v);
@@ -76,9 +74,9 @@ const ChatItem = ({ c, isActive, onOpen, onDelete }) => {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 rounded-xl overflow-hidden z-50 bg-(--bg) border border-(--accent-b) shadow-(--shadow) min-w-27.5">
+        <div className="absolute right-0 top-full mt-1 rounded-xl overflow-hidden z-50 bg-[var(--bg)] border border-[var(--accent-b)] shadow-[var(--shadow)] min-w-27.5">
           <button
-            className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-(--danger) hover:bg-(--danger-bg)"
+            className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-[var(--danger)] hover:bg-[var(--danger-bg)]"
             onClick={(e) => {
               e.stopPropagation();
               onDelete(c.id);
@@ -98,12 +96,12 @@ const Sidebar = ({ chats, currentChatId, onOpen, onDelete, onNew }) => (
   <div className="flex flex-col h-full gap-1">
     <button
       onClick={onNew}
-      className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl text-[13px] font-semibold mb-2 border border-(--accent-b) bg-(--accent-s) text-(--active) hover:brightness-110 transition"
+      className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl text-[13px] font-semibold mb-2 border border-[var(--accent-b)] bg-[var(--accent-s)] text-[var(--active)] hover:brightness-110 transition"
     >
       <Plus size={14} /> New Chat
     </button>
 
-    <p className="text-[10px] font-bold uppercase tracking-widest px-1 mb-1 text-(--muted)">
+    <p className="text-[10px] font-bold uppercase tracking-widest px-1 mb-1 text-[var(--muted)]">
       History
     </p>
 
@@ -142,10 +140,6 @@ const Dashboard = () => {
 
   const messages = chats[currentChatId]?.messages || [];
 
-  useEffect(() => {
-    applyTheme(isDark);
-  }, [isDark]);
-
   const sidebarProps = {
     chats,
     currentChatId,
@@ -156,11 +150,10 @@ const Dashboard = () => {
 
   return (
     <>
-      <style>{globalCss}</style>
 
       <div className="flex flex-col h-screen overflow-hidden bg-[var(--bg)] text-[var(--text)]">
         {/* NAVBAR */}
-        <header className="flex items-center justify-between px-4 h-[54px] shrink-0 z-20 backdrop-blur-md bg-[var(--bg-nav)] border-b border-[var(--border)]">
+        <header className="flex items-center justify-between px-4 h-13.5 shrink-0 z-20 backdrop-blur-md bg-[var(--bg-nav)] border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
             <button
               className="md:hidden p-1.5 rounded-lg text-[var(--muted)]"
@@ -183,7 +176,7 @@ const Dashboard = () => {
             </button>
 
             <button
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border border-(--accent-b) bg-(--accent-s) text-(--active)"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border border-[var(--accent-b)] bg-[var(--accent-s)] text-[var(--active)]"
               onClick={userDetail}
             >
               {user?.username ? (
@@ -197,7 +190,7 @@ const Dashboard = () => {
 
         <div className="flex flex-1 overflow-hidden">
           {/* SIDEBAR */}
-          <aside className="hidden md:flex flex-col w-56 p-3 bg-(--bg-side) border-r border-(--border)">
+          <aside className="hidden md:flex flex-col w-56 p-3 bg-[var(--bg-side)] border-r border-[var(--border)]">
             <Sidebar {...sidebarProps} />
           </aside>
 
@@ -208,9 +201,9 @@ const Dashboard = () => {
                 className="absolute inset-0 bg-black/50"
                 onClick={() => setMobileOpen(false)}
               />
-              <aside className="relative w-57.5 p-3 bg-(--bg-side)">
+              <aside className="relative w-57.5 p-3 bg-[var(--bg-side)]">
                 <button
-                  className="mb-2 text-(--muted)"
+                  className="mb-2 text-[var(--muted)]"
                   onClick={() => setMobileOpen(false)}
                 >
                   <X size={18} />
@@ -226,7 +219,7 @@ const Dashboard = () => {
               <div className="flex flex-1 flex-col items-center justify-center gap-3">
                 <Sparkles size={30} />
                 <p className="text-3xl font-bold">Perplexity</p>
-                <p className="text-sm text-(--muted)">
+                <p className="text-sm text-[var(--muted)]">
                   Ask anything — I'll find the answer.
                 </p>
               </div>
@@ -238,17 +231,17 @@ const Dashboard = () => {
                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start gap-2"}`}
                   >
                     {msg.role !== "user" && (
-                      <div className="w-6 h-6 flex items-center justify-center bg-(--accent) rounded">
+                      <div className="w-6 h-6 flex items-center justify-center bg-[var(--accent)] rounded">
                         <Sparkles size={12} color="#fff" />
                       </div>
                     )}
 
                     {msg.role === "user" ? (
-                      <div className="max-w-[60%] px-4 py-2 rounded-lg bg-(--ubg) border border-(--uborder) text-(--utext)">
+                      <div className="max-w-[60%] px-4 py-2 rounded-lg bg-[var(--ubg)] border border-[var(--uborder)] text-[var(--utext)]">
                         {msg.content}
                       </div>
                     ) : (
-                      <div className="max-w-[75%] text-(--ai-text)">
+                      <div className="max-w-[75%] text-[var(--ai-text)]">
                         {msg.isNew ? (
                           <Typewriter content={msg.content} />
                         ) : (
@@ -263,18 +256,18 @@ const Dashboard = () => {
             )}
 
             {/* INPUT */}
-            <div className="p-3 border-t border-(--border) bg-(--bg-nav)">
+            <div className="p-3 border-t border-[var(--border)] bg-[var(--bg-nav)]">
               <form onSubmit={handleSubmit} className="max-w-xl mx-auto">
-                <div className="flex items-center gap-2 px-3 py-2 border rounded bg-(--bg) border-(--border) focus-within:border-[var(--accent-b)]">
+                <div className="flex items-center gap-2 px-3 py-2 border rounded bg-[var(--bg)] border-[var(--border)] focus-within:border-[var(--accent-b)]">
                   <input
-                    className="flex-1 bg-transparent outline-none text-sm text-(--text)"
+                    className="flex-1 bg-transparent outline-none text-sm text-[var(--text)]"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                   />
                   <button
                     type="submit"
                     disabled={!chatInput.trim()}
-                    className="p-2 bg-(--accent) text-white rounded disabled:opacity-30"
+                    className="p-2 bg-[var(--accent)] text-white rounded disabled:opacity-30"
                   >
                     <ArrowUp size={14} />
                   </button>

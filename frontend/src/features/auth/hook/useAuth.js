@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux"
-import { register, login, getMe } from "../services/auth.api"
-import { setUser, setError, setLoading } from "../auth.slice"
+import { register, login, getMe, sendVerificationEmail } from "../services/auth.api"
+import { setUser, setError, setLoading, setIsSending, setVerified } from "../auth.slice"
 
 export function useAuth() {
 
@@ -11,13 +11,13 @@ export function useAuth() {
 
             dispatch(setLoading(true))
             const data = await register({ username, email, password })
-            
+
             dispatch(setUser(data.user))
 
         } catch (error) {
 
             dispatch(setError(error.response?.data?.message || "Registration failed"))
-            throw error  
+            throw error
 
         } finally {
             dispatch(setLoading(false))
@@ -55,9 +55,23 @@ export function useAuth() {
         }
     }
 
+    async function handleVerifyEmail(email) {
+        try {
+            dispatch(setIsSending(true))
+            await sendVerificationEmail(email)
+            dispatch(setVerified(true))
+        } catch (error) {
+            dispatch(setError(error.response?.data?.message || "Verification failed"))
+            dispatch(setVerified(false))
+        } finally {
+            dispatch(setIsSending(false))
+        }
+    }
+
     return {
         handleRegister,
         handleLogin,
-        handleGetMe
+        handleGetMe,
+        handleVerifyEmail
     }
 }

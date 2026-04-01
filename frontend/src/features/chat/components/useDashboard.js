@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useChat } from "../hooks/useChat"
-import getTheme from "../components/Theme";
+import getTheme from "../../Theme/Theme";
 
 export const useDashboard = () => {
     const chat = useChat();
