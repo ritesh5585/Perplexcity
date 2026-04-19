@@ -1,12 +1,55 @@
-# React + Vite
+# 🔍 Perplexity Clone — Real-Time AI Search Engine
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An advanced Retrieval-Augmented Generation (RAG) system that combines live web search, semantic retrieval, and LLM-based synthesis to deliver accurate, source-backed answers in real-time.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## Expanding the ESLint configuration
+- ⚡ Real-time AI-powered search
+- 🌐 Live web retrieval (Tavily / Serper)
+- 📚 Context-aware answer generation
+- 🔗 Source citations
+- 🔄 Streaming responses (SSE)
+- 🧠 Scalable RAG architecture
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🏗️ Tech Stack
+
+- Frontend: React.js
+- Backend: Node.js + Express
+- LLM: OpenAI / Anthropic
+- Search API: Tavily / Serper
+- Scraping: Cheerio / Playwright
+- Vector DB: Pinecone (planned)
+
+---
+
+## 🧠 Architecture
+
+```mermaid
+graph TD
+A[User Query] --> B[Search API]
+B --> C[Web Scraper]
+C --> D[Chunking]
+D --> E[Vector DB]
+E --> F[Top-K Retrieval]
+F --> G[LLM]
+G --> H[Streaming Response]
+H --> I[React UI]
+
+git clone https://github.com/your-repo
+cd project
+
+# Backend
+cd backend
+npm install
+
+# Frontend
+cd ../frontend
+npm install
+
+OPENAI_API_KEY=
+TAVILY_API_KEY=
+PINECONE_API_KEY=
