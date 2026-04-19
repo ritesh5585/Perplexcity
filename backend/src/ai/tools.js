@@ -2,11 +2,11 @@ import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { tavily } from "@tavily/core";
 import dotenv from "dotenv";
- 
+
 dotenv.config();
- 
+
 const tavilyClient = tavily({ apiKey: process.env.TAVILY_API_KEY });
- 
+
 const tavilySearch = tool(
   async ({ query }) => {
     try {
@@ -14,9 +14,9 @@ const tavilySearch = tool(
         maxResults: 3,
         searchDepth: "basic",
       });
- 
+
       if (!response.results?.length) return "No results found.";
- 
+
       return response.results
         .map(
           (r, i) =>
@@ -35,5 +35,16 @@ const tavilySearch = tool(
     }),
   }
 );
- 
-export const tools = [tavilySearch];
+
+const ragTool = tool(
+  async ({ query }) => {
+    return await getRAGContext(query)
+  },
+  {
+    name: "search_documents",
+    description: "Search uploaded documents for information",
+    schema: z.object({ query: z.string() })
+  }
+)
+
+export const tools = [tavilySearch, ragTool]

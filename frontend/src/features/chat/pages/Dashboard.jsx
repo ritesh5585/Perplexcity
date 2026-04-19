@@ -96,7 +96,7 @@ const Sidebar = ({ chats, currentChatId, onOpen, onDelete, onNew }) => (
   <div className="flex flex-col h-full gap-1">
     <button
       onClick={onNew}
-      className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl text-[13px] font-semibold mb-2 border border-[var(--accent-b)] bg-[var(--accent-s)] text-[var(--active)] hover:brightness-110 transition"
+      className="flex  items-center justify-center gap-2 w-full py-2 px-3 rounded-xl text-[13px] font-semibold mb-2 border border-[var(--accent-b)] bg-[var(--accent-s)] text-[var(--active)] hover:brightness-110 transition"
     >
       <Plus size={14} /> New Chat
     </button>
@@ -105,7 +105,7 @@ const Sidebar = ({ chats, currentChatId, onOpen, onDelete, onNew }) => (
       History
     </p>
 
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto p-2 ">
       {Object.values(chats).map((c) => (
         <ChatItem
           key={c.id}
@@ -196,14 +196,14 @@ const Dashboard = () => {
 
           {/* MOBILE */}
           {mobileOpen && (
-            <div className="fixed inset-0 z-50 flex md:hidden">
+            <div className="fixed inset-0 z-50 flex md:hidden ">
               <div
-                className="absolute inset-0 bg-black/50"
+                className="absolute inset-0 bg-black/50 "
                 onClick={() => setMobileOpen(false)}
               />
-              <aside className="relative w-57.5 p-3 bg-[var(--bg-side)]">
+              <aside className="relative w-57.5 p-3 bg-[var(--bg-side)] ">
                 <button
-                  className="mb-2 text-[var(--muted)]"
+                  className="mb-2 text-var(--muted) "
                   onClick={() => setMobileOpen(false)}
                 >
                   <X size={18} />
@@ -219,7 +219,7 @@ const Dashboard = () => {
               <div className="flex flex-1 flex-col items-center justify-center gap-3">
                 <Sparkles size={30} />
                 <p className="text-3xl font-bold">Perplexity</p>
-                <p className="text-sm text-[var(--muted)]">
+                <p className="text-sm text-var(--muted)">
                   Ask anything — I'll find the answer.
                 </p>
               </div>
@@ -256,20 +256,21 @@ const Dashboard = () => {
             )}
 
             {/* INPUT */}
-            <div className="p-3 border-t border-[var(--border)] bg-[var(--bg-nav)]">
+            <div className="p-3 border-t border-gray-500 bg-[var(--bg-nav)]">
               <form onSubmit={handleSubmit} className="max-w-xl mx-auto">
-                <div className="flex items-center gap-2 px-3 py-2 border rounded bg-[var(--bg)] border-[var(--border)] focus-within:border-[var(--accent-b)]">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-full border border-gray-500 focus-within:border-[var(--accent-b)]">
                   <input
-                    className="flex-1 bg-transparent outline-none text-sm text-[var(--text)]"
+                    className="flex-1 bg-transparent outline-none text-sm text-var(--text) "
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Ask Anything"
                   />
                   <button
                     type="submit"
                     disabled={!chatInput.trim()}
-                    className="p-2 bg-[var(--accent)] text-white rounded disabled:opacity-30"
+                    className="p-2 bg-[var(--accent)] rounded-full text-white rounded disabled:opacity-30"
                   >
-                    <ArrowUp size={14} />
+                    <ArrowUp size={22} />
                   </button>
                 </div>
               </form>

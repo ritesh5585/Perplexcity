@@ -12,6 +12,7 @@ const Login = () => {
   const submitForm = async (event) => {
     event.preventDefault();
     try {
+      console.log("hello")
       await handleLogin(email, password); 
       navigate("/");
     } catch (error) {

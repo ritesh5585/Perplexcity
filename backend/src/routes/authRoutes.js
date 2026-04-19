@@ -1,20 +1,16 @@
 import { Router } from "express";
-import { register, logIn, getMe, verifyEmail, sendVerificationEmail } from "../controllers/auth.js";
+import { register, logIn, getMe, verifyEmail, sendVerificationEmail, checkVerified } from "../controllers/auth.js";
 import { registerValidator, loginValidator } from "../validator/auth.validation.js";
 import { authUser } from "../middleware/auth.middleware.js";
 
 const authRouter = Router()
 
-// /api/auth/register: register as a new user {user: username, email, password}
 authRouter.post("/register", registerValidator, register)
-
-// /api/auth/login: login user: email, password;
 authRouter.post("/login", loginValidator, logIn)
-authRouter.post("/send-verification-email", sendVerificationEmail);
-
-authRouter.get("/verify-email", verifyEmail);
-authRouter.get("/get-me", authUser, getMe)
+authRouter.post("/send-verification", sendVerificationEmail)  
 
 authRouter.get("/verify-email", verifyEmail)
+authRouter.get("/check-verified", checkVerified)              
+authRouter.get("/get-me", authUser, getMe)
 
 export default authRouter

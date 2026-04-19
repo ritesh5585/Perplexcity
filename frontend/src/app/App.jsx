@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./app.router.jsx";
-import {useAuth} from "../features/auth/hook/useAuth";
+import { useAuth } from "../features/auth/hook/useAuth";
 import { useSelector } from "react-redux";
 
 const App = () => {
